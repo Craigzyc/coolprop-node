@@ -214,7 +214,7 @@ class CoolPropWrapper {
             const subcooling = satTempK - tempK;
             const result = {
                 type: 'success',
-                subcooling: this._convertDeltaTempFromK(subcooling, tempUnit),
+                subcooling: Math.max(0, this._convertDeltaTempFromK(subcooling, tempUnit)), // can't have less than 0 degrees subcooling
                 saturationTemperature: this._convertTempFromK(satTempK, tempUnit),
                 refrigerant,
                 units: {
@@ -240,7 +240,7 @@ class CoolPropWrapper {
             const superheat = tempK - satTempK;
             const result = {
                 type: 'success',
-                superheat: this._convertDeltaTempFromK(superheat, tempUnit),
+                superheat: Math.max(0, this._convertDeltaTempFromK(superheat, tempUnit)), // cabt have less than 0 degrees superheat
                 saturationTemperature: this._convertTempFromK(satTempK, tempUnit),
                 refrigerant,
                 units: {
