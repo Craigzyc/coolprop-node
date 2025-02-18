@@ -55,6 +55,7 @@ async function example() {
 
 ### nodeprop.init(config)
 Initializes the wrapper with optional configuration.
+###### Note: Calling `init()` is optional. The library will initialize automatically when you make your first call to any function, but you must provide a `refrigerant` parameter in that first call.
 
 ```javascript
 await nodeprop.init({
