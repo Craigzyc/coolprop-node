@@ -1,14 +1,22 @@
 {
   "name": "coolprop-node",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "coolprop",
+    "thermodynamics",
+    "fluid properties",
+    "refrigerant",
+    "refrigeration",
+    "refprop"
+  ],
+  "author": "Craig Zych",
+  "license": "MIT",
+  "description": "A Node.js wrapper for CoolProp providing an easy-to-use interface for thermodynamic calculations and refrigerant properties. Unlike all the other CoolProp npm packages I've seen, this one should actually work. Please report any issues. ",
   "devDependencies": {
     "jest": "^29.7.0"
   },

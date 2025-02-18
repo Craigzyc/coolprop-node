@@ -1,10 +1,12 @@
 # NodeProp
 
-A Node.js wrapper for CoolProp providing an easy-to-use interface for thermodynamic calculations and refrigerant properties.
+A Node.js wrapper for CoolProp providing an easy-to-use interface for thermodynamic calculations and refrigerant properties. Unlike all the other CoolProp npm packages I've seen, this one should actually work. Please report any issues.
 
 ## Installation
-bash
-npm install nodeprop
+
+```bash
+npm install coolprop-node
+```
 
 ## Features
 
@@ -14,64 +16,64 @@ npm install nodeprop
 - Configurable defaults
 - Comprehensive error handling
 
+## Dependencies
+ No External Dependencies, as CoolProp.js and CoolProp.wasm are bundled with the package.
+- [CoolProp](https://github.com/CoolProp/CoolProp) for the powerful thermodynamic library
+
+
 ## Quick Start
-javascript
-const nodeprop = require('nodeprop');
+```javascript
+const nodeprop = require('coolprop-node');
 async function example() {
-// Initialize with defaults (optional)
-await nodeprop.init({
-refrigerant: 'R404A',
-tempUnit: 'C',
-pressureUnit: 'bar'
-});
-// Calculate superheat
-const result = await nodeprop.calculateSuperheat({
-temperature: 25, // 25°C
-pressure: 10, // 10 bar
-refrigerant: 'R404A' // optional if set in init
-});
-console.log(result);
-/ Output:
-{
-type: 'success',
-superheat: 5.2,
-saturationTemperature: 19.8,
-refrigerant: 'R404A',
-units: {
-temperature: 'C',
-pressure: 'bar'
-},
-input: {
-temperature: 25,
-pressure: 10,
-refrigerant: 'R404A'
-}
-}
-/
-}
+    // Initialize with defaults (optional)
+    await nodeprop.init({
+        refrigerant: 'R404A',
+        tempUnit: 'C',
+        pressureUnit: 'bar'
+    });
+    // Calculate superheat
+    const result = await nodeprop.calculateSuperheat({
+        temperature: 25, // 25°C
+        pressure: 10, // 10 bar
+        refrigerant: 'R404A' // optional if set in init
+    });
+    console.log(result);
+    
+    {
+        type: 'success',
+        superheat: 5.2,
+        saturationTemperature: 19.8,
+        refrigerant: 'R404A',
+        units: {
+            temperature: 'C',
+            pressure: 'bar'
+        }
+    }
+```
 
 ## API Reference
 
 ### nodeprop.init(config)
 Initializes the wrapper with optional configuration.
 
-javascript
+```javascript
 await nodeprop.init({
     refrigerant: 'R404A', // Required on first init
     tempUnit: 'C', // Optional, defaults to 'K'
     pressureUnit: 'bar' // Optional, defaults to 'Pa'
 });
-
+```
 
 ### nodeprop.calculateSuperheat(input)
 Calculates superheat for a given refrigerant.
 
-javascript
+```javascript   
 const result = await nodeprop.calculateSuperheat({
     temperature: 25, // 25°C
     pressure: 10, // 10 bar
     refrigerant: 'R404A' // optional if set in init
 });
+
 
 returns:
     {
@@ -84,11 +86,12 @@ returns:
             pressure: 'bar'
         }
     }
+```
 
 ### nodeprop.getSaturationTemperature(input)
 Calculates saturation temperature for a given refrigerant.  
 
-javascript
+```javascript
 const result = await nodeprop.calculateSaturationTemperature({
     temperature: 25, // 25°C
     pressure: 10, // 10 bar
@@ -105,11 +108,12 @@ returns:
             pressure: 'bar'
         }
     }
+```
 
 ### nodeprop.getSaturationPressure(input)
 Calculates saturation pressure for a given refrigerant.
 
-javascript
+```javascript
 const result = await nodeprop.calculateSaturationPressure({
     temperature: 25, // 25°C
     refrigerant: 'R404A' // optional if set in init
@@ -124,12 +128,13 @@ returns:
             temperature: 'C',
             pressure: 'bar'
         }
-    }
+    }   
+```
 
 ### nodeprop.calculateSubcooling(input)
 Calculates subcooling for a given refrigerant.
 
-javascript
+```javascript
 const result = await nodeprop.calculateSubcooling({
     temperature: 25, // 25°C
     pressure: 10, // 10 bar
@@ -147,12 +152,12 @@ returns:
             pressure: 'bar'
         }
     }
-
+```
 
 ### nodeprop.calculateSuperheat(input)
 Calculates superheat for a given refrigerant.
 
-javascript
+```javascript   
 const result = await nodeprop.calculateSuperheat({
     temperature: 25, // 25°C
     pressure: 10, // 10 bar
@@ -170,12 +175,12 @@ returns:
             pressure: 'bar'
         }
     }
-
+```
 
 ### nodeprop.getProperties(input)
 Gets all properties for a given refrigerant.
 
-javascript
+```javascript
 const result = await nodeprop.getProperties({
     temperature: 25, // 25°C
     pressure: 10, // 10 bar
@@ -209,15 +214,32 @@ returns:
             specificHeat: 'J/kg/K'
         }
     }
+```
 
 ### nodeprop.PropsSI
 Direct access to CoolProp's PropsSI function.
 
-javascript
+```javascript
 const result = nodeprop.PropsSI('H', 'T', 298.15, 'P', 101325, 'R134a');
+```
 
+### Error Handling
 
-###Acknowledgements
+```javascript
+const result = await nodeprop.calculateSuperheat({
+    temperature: 25, // 25°C
+    pressure: 10, // 10 bar
+    refrigerant: 'R404' // Invalid refrigerant. Must be supported by CoolProp, but R404 is not even a valid refrigerant.
+});
+
+returns:
+    {
+        type: 'error',
+        message: 'Invalid refrigerant'
+    }
+```
+
+### Acknowledgements
 
 - [CoolProp](https://github.com/CoolProp/CoolProp) for the powerful thermodynamic library
 
