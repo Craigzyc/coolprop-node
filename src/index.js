@@ -297,8 +297,10 @@ class CoolPropWrapper {
     }
 
     // Direct access to CoolProp functions
-    get PropsSI() {
-        this._ensureInit();
+    async getPropsSI() {
+        if(!this.initialized) {
+            await coolprop.init();
+        }
         return coolprop.PropsSI;
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "coolprop-node",
-  "version": "1.0.2",
-  "main": "index.js",
+  "version": "1.0.4",
+  "main": "src/index.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch"

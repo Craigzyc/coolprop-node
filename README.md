@@ -220,7 +220,8 @@ returns:
 Direct access to CoolProp's PropsSI function.
 
 ```javascript
-const result = nodeprop.PropsSI('H', 'T', 298.15, 'P', 101325, 'R134a');
+const PropsSI = await nodeprop.getPropsSI();
+const result = PropsSI('H', 'T', 298.15, 'P', 101325, 'R134a');
 ```
 
 ### Error Handling
