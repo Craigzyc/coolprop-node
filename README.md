@@ -39,6 +39,7 @@ async function example() {
     });
     console.log(result);
     
+    // expected output:
     {
         type: 'success',
         superheat: 5.2,
@@ -49,6 +50,8 @@ async function example() {
             pressure: 'bar'
         }
     }
+}
+example();
 ```
 
 ## API Reference
