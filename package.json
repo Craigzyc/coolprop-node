@@ -1,6 +1,6 @@
 {
   "name": "coolprop-node",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
@@ -23,5 +23,9 @@
   "jest": {
     "testEnvironment": "node",
     "verbose": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Craigzyc/coolprop-node.git"
   }
 }

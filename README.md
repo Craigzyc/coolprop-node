@@ -1,4 +1,4 @@
-# NodeProp
+# CoolProp-Node
 
 A Node.js wrapper for CoolProp providing an easy-to-use interface for thermodynamic calculations and refrigerant properties. Unlike all the other CoolProp npm packages I've seen, this one should actually work. Please report any issues.
 
