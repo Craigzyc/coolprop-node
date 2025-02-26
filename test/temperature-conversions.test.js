@@ -58,7 +58,7 @@ describe('Temperature Conversion Tests', () => {
                 expected: {
                     K: 10,
                     C: 10,
-                    F: 50  // 10K = 18°F difference
+                    F: 18  // 10K = 18°F difference
                 }
             }
         ];

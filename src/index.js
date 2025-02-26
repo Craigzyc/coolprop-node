@@ -31,7 +31,7 @@ class CoolPropWrapper {
         switch(unit.toUpperCase()) {
             case 'K': return value;
             case 'C': return value;
-            case 'F': return (value * 1.8) + 32;
+            case 'F': return (value * 1.8);
             default: throw new Error('Unsupported temperature unit');
         }
     }
@@ -238,6 +238,7 @@ class CoolPropWrapper {
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
             const satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 1, refrigerant);
             const superheat = tempK - satTempK;
+            //console.log(`superheat: ${superheat}, calculatedSuperheat: ${this._convertDeltaTempFromK(superheat, tempUnit)}, calculatedSatTempK: ${this._convertTempFromK(satTempK, tempUnit)}, tempK: ${tempK}, tempUnit: ${tempUnit}, pressurePa: ${pressurePa}, pressureUnit: ${pressureUnit}`);
             const result = {
                 type: 'success',
                 superheat: Math.max(0, this._convertDeltaTempFromK(superheat, tempUnit)), // cabt have less than 0 degrees superheat
