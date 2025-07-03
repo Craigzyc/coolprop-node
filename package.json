@@ -1,6 +1,6 @@
 {
   "name": "coolprop-node",
-  "version": "1.0.14",
+  "version": "1.0.16",
   "main": "src/index.js",
   "scripts": {
     "test": "jest",

@@ -1,4 +1,5 @@
 const coolprop = require('./cp.js');
+const customRefs = require('./refData.js');
 
 class CoolPropWrapper {
     constructor() {
@@ -6,6 +7,7 @@ class CoolPropWrapper {
         this.defaultRefrigerant = null;
         this.defaultTempUnit = 'K';    // K, C, F
         this.defaultPressureUnit = 'Pa' // Pa, kPa, bar, psi
+        this.customRef = false;
     }
 
     // Temperature conversion helpers
@@ -143,6 +145,14 @@ class CoolPropWrapper {
         if (config.refrigerant && typeof config.refrigerant !== 'string') {
             throw new Error('Invalid refrigerant type');
         }
+        if (config.refrigerant && Object.keys(customRefs).includes(config.refrigerant)) {
+            this.customRef = true;
+            this.defaultRefrigerant = config.refrigerant;
+            //console.log(`Using custom refrigerant flag for ${this.defaultRefrigerant}`);
+        }else if(this.customRef && config.refrigerant){
+            this.customRef = false;
+            //console.log(`Cleared custom refrigerant flag`);
+        }
 
         // Update instance variables with new config values if provided
         if (config.refrigerant) this.defaultRefrigerant = config.refrigerant;
@@ -167,11 +177,87 @@ class CoolPropWrapper {
         };
     }
 
+    // Helper method for linear interpolation/extrapolation
+    _interpolateSaturationTemperature(pressurePa, saturationData, pressureType = 'liquid') {
+        const data = saturationData.sort((a, b) => a[pressureType] - b[pressureType]); // Sort by specified pressure type
+        
+        // If pressure is below the lowest data point, extrapolate using first two points
+        if (pressurePa <= data[0][pressureType]) {
+            if (data.length < 2) return data[0].K;
+            const p1 = data[0], p2 = data[1];
+            const slope = (p2.K - p1.K) / (p2[pressureType] - p1[pressureType]);
+            return p1.K + slope * (pressurePa - p1[pressureType]);
+        }
+        
+        // If pressure is above the highest data point, extrapolate using last two points
+        if (pressurePa >= data[data.length - 1][pressureType]) {
+            if (data.length < 2) return data[data.length - 1].K;
+            const p1 = data[data.length - 2], p2 = data[data.length - 1];
+            const slope = (p2.K - p1.K) / (p2[pressureType] - p1[pressureType]);
+            return p1.K + slope * (pressurePa - p1[pressureType]);
+        }
+        
+        // Find the two adjacent points for interpolation
+        for (let i = 0; i < data.length - 1; i++) {
+            if (pressurePa >= data[i][pressureType] && pressurePa <= data[i + 1][pressureType]) {
+                const p1 = data[i], p2 = data[i + 1];
+                
+                // Linear interpolation
+                const slope = (p2.K - p1.K) / (p2[pressureType] - p1[pressureType]);
+                return p1.K + slope * (pressurePa - p1[pressureType]);
+            }
+        }
+        
+        // Fallback (shouldn't reach here)
+        return data[0].K;
+    }
+
+    // Helper method for linear interpolation/extrapolation of saturation pressure
+    _interpolateSaturationPressure(tempK, saturationData, pressureType = 'liquid') {
+        const data = saturationData.sort((a, b) => a.K - b.K); // Sort by temperature
+        
+        // If temperature is below the lowest data point, extrapolate using first two points
+        if (tempK <= data[0].K) {
+            if (data.length < 2) return data[0][pressureType];
+            const p1 = data[0], p2 = data[1];
+            const slope = (p2[pressureType] - p1[pressureType]) / (p2.K - p1.K);
+            return p1[pressureType] + slope * (tempK - p1.K);
+        }
+        
+        // If temperature is above the highest data point, extrapolate using last two points
+        if (tempK >= data[data.length - 1].K) {
+            if (data.length < 2) return data[data.length - 1][pressureType];
+            const p1 = data[data.length - 2], p2 = data[data.length - 1];
+            const slope = (p2[pressureType] - p1[pressureType]) / (p2.K - p1.K);
+            return p1[pressureType] + slope * (tempK - p1.K);
+        }
+        
+        // Find the two adjacent points for interpolation
+        for (let i = 0; i < data.length - 1; i++) {
+            if (tempK >= data[i].K && tempK <= data[i + 1].K) {
+                const p1 = data[i], p2 = data[i + 1];
+                
+                // Linear interpolation
+                const slope = (p2[pressureType] - p1[pressureType]) / (p2.K - p1.K);
+                return p1[pressureType] + slope * (tempK - p1.K);
+            }
+        }
+        
+        // Fallback (shouldn't reach here)
+        return data[0][pressureType];
+    }
+
     async getSaturationTemperature({ pressure, refrigerant = this.defaultRefrigerant, pressureUnit = this.defaultPressureUnit, tempUnit = this.defaultTempUnit }) {
         try {
             await this._ensureInit({ refrigerant, pressureUnit, tempUnit });
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
-            const tempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, refrigerant);
+            let tempK;
+            if(this.customRef){
+                tempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation);
+            }else{
+                tempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || refrigerant);
+            }
+                        
             return {
                 type: 'success',
                 temperature: this._convertTempFromK(tempK, tempUnit),
@@ -186,11 +272,19 @@ class CoolPropWrapper {
         }
     }
 
+
     async getSaturationPressure({ temperature, refrigerant = this.defaultRefrigerant, tempUnit = this.defaultTempUnit, pressureUnit = this.defaultPressureUnit }) {
         try {
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
-            const pressurePa = coolprop.PropsSI('P', 'T', tempK, 'Q', 0, refrigerant);
+            let pressurePa;
+            
+            if(this.customRef){
+                pressurePa = this._interpolateSaturationPressure(tempK, customRefs[refrigerant].saturation);
+            }else{
+                pressurePa = coolprop.PropsSI('P', 'T', tempK, 'Q', 0, this.customRefString || refrigerant);
+            }
+            
             return {
                 type: 'success',
                 pressure: this._convertPressureFromPa(pressurePa, pressureUnit),
@@ -210,7 +304,13 @@ class CoolPropWrapper {
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
-            const satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, refrigerant);
+            let satTempK;
+            if(this.customRef){
+                // Use liquid pressure for subcooling
+                satTempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation, 'liquid');
+            }else{
+                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || refrigerant);
+            }
             const subcooling = satTempK - tempK;
             const result = {
                 type: 'success',
@@ -236,12 +336,19 @@ class CoolPropWrapper {
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
-            const satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 1, refrigerant);
+            //console.log(`In calculateSuperheat, pressurePa: ${pressurePa}, pressure: ${pressure}, pressureUnit: ${pressureUnit}, refrigerant: ${this.customRefString || refrigerant}`);
+            let satTempK;
+            if(this.customRef){
+                // Use vapor pressure for superheat
+                satTempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation, 'vapor');
+            }else{
+                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 1, this.customRefString || refrigerant);
+            }
             const superheat = tempK - satTempK;
             //console.log(`superheat: ${superheat}, calculatedSuperheat: ${this._convertDeltaTempFromK(superheat, tempUnit)}, calculatedSatTempK: ${this._convertTempFromK(satTempK, tempUnit)}, tempK: ${tempK}, tempUnit: ${tempUnit}, pressurePa: ${pressurePa}, pressureUnit: ${pressureUnit}`);
             const result = {
                 type: 'success',
-                superheat: Math.max(0, this._convertDeltaTempFromK(superheat, tempUnit)), // cabt have less than 0 degrees superheat
+                superheat: Math.max(0, this._convertDeltaTempFromK(superheat, tempUnit)), // can't have less than 0 degrees superheat
                 saturationTemperature: this._convertTempFromK(satTempK, tempUnit),
                 refrigerant,
                 units: {
@@ -263,17 +370,20 @@ class CoolPropWrapper {
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
+            if(this.customRef){
+                return { type: 'error', message: 'Custom refrigerants are not supported for getProperties' };
+            }
             
             const props = {
                 temperature: this._convertTempFromK(tempK, tempUnit),
                 pressure: this._convertPressureFromPa(pressurePa, pressureUnit),
-                density: coolprop.PropsSI('D', 'T', tempK, 'P', pressurePa, refrigerant),
-                enthalpy: coolprop.PropsSI('H', 'T', tempK, 'P', pressurePa, refrigerant),
-                entropy: coolprop.PropsSI('S', 'T', tempK, 'P', pressurePa, refrigerant),
-                quality: coolprop.PropsSI('Q', 'T', tempK, 'P', pressurePa, refrigerant),
-                conductivity: coolprop.PropsSI('L', 'T', tempK, 'P', pressurePa, refrigerant),
-                viscosity: coolprop.PropsSI('V', 'T', tempK, 'P', pressurePa, refrigerant),
-                specificHeat: coolprop.PropsSI('C', 'T', tempK, 'P', pressurePa, refrigerant)
+                density: coolprop.PropsSI('D', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                enthalpy: coolprop.PropsSI('H', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                entropy: coolprop.PropsSI('S', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                quality: coolprop.PropsSI('Q', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                conductivity: coolprop.PropsSI('L', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                viscosity: coolprop.PropsSI('V', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
+                specificHeat: coolprop.PropsSI('C', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant)
             };
 
             return {

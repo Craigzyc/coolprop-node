@@ -26,6 +26,7 @@ describe('CoolProp Wrapper', () => {
                 tempUnit: 'C', 
                 pressureUnit: 'bar' 
             });
+            console.log(result);
             expect(result.type).toBe('success');
         });
     });
