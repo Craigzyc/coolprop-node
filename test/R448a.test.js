@@ -77,4 +77,18 @@ describe('R448a Real Values', () => {
         expect(result.type).toBe('success');
         expect(Math.abs(result.subcooling)).toBeLessThan(0.2); // Should be ~0K subcooling
     });
+
+    
+    it('It should also work with R448A (capital A)', async () => {
+        const result = await coolprop.calculateSubcooling({
+            temperature: 20,    // Exact saturation temperature
+            pressure: 148.5,    // Matching saturation pressure from chart
+            refrigerant: 'R448A',
+            tempUnit: 'C',
+            pressureUnit: 'psig'
+        });
+        
+        expect(result.type).toBe('success');
+        expect(Math.abs(result.subcooling)).toBeLessThan(0.2); // Should be ~0K subcooling
+    });
 }); 
