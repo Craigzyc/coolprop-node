@@ -322,7 +322,7 @@ class CoolPropWrapper {
                     pressure: pressureUnit
                 }
             };
-            if(result.subcooling == Infinity && result.saturationTemperature == Infinity) {
+            if(result.subcooling == Infinity || result.saturationTemperature == Infinity) {
                 return { type: 'error', message: 'Subcooling is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"'};
             }
             return result;
@@ -356,7 +356,7 @@ class CoolPropWrapper {
                     pressure: pressureUnit
                 }
             };
-            if(result.superheat == Infinity && result.saturationTemperature == Infinity) {
+            if(result.superheat == Infinity || result.saturationTemperature == Infinity) {
                 return { type: 'error', message: 'Superheat is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"'};
             }
             return result;

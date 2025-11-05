@@ -15,6 +15,10 @@ npm install coolprop-node
 - Automatic initialization
 - Configurable defaults
 - Comprehensive error handling
+- Additional Refrigerant types not supported by CoolProp for superheat and subcooling. 
+    -R407f
+    -R448a
+    -R449a
 
 ## Dependencies
  No External Dependencies, as CoolProp.js and CoolProp.wasm are bundled with the package.
