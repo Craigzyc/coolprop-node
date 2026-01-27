@@ -89,9 +89,8 @@ describe('R507 Real Values', () => {
             tempUnit: 'C',
             pressureUnit: 'psig'
         });
-        
-        expect(result.type).toBe('error');
-        expect(result.message).toBe('Subcooling is infinity');
-        expect(result.note).toBeDefined();
+        console.log(result);
+        expect(result.type).toBe('success');
+        expect(Math.abs(result.subcooling - 5)).toBeLessThan(0.1); // Should be ~5K subcooling
     });
 }); 

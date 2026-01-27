@@ -249,6 +249,10 @@ class CoolPropWrapper {
 
     async getSaturationTemperature({ pressure, refrigerant = this.defaultRefrigerant, pressureUnit = this.defaultPressureUnit, tempUnit = this.defaultTempUnit }) {
         try {
+            //convert R507 to R507a for coolprop
+            if(refrigerant == 'R507') {
+                refrigerant = 'R507A';
+            }
             await this._ensureInit({ refrigerant, pressureUnit, tempUnit });
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
             let tempK;
@@ -275,6 +279,10 @@ class CoolPropWrapper {
 
     async getSaturationPressure({ temperature, refrigerant = this.defaultRefrigerant, tempUnit = this.defaultTempUnit, pressureUnit = this.defaultPressureUnit }) {
         try {
+            //convert R507 to R507a for coolprop
+            if(refrigerant == 'R507') {
+                refrigerant = 'R507A';
+            }
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             let pressurePa;
@@ -301,6 +309,10 @@ class CoolPropWrapper {
 
     async calculateSubcooling({ temperature, pressure, refrigerant = this.defaultRefrigerant, tempUnit = this.defaultTempUnit, pressureUnit = this.defaultPressureUnit }) {
         try {
+            //convert R507 to R507a for coolprop
+            if(refrigerant == 'R507') {
+                refrigerant = 'R507A';
+            }
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
@@ -333,6 +345,10 @@ class CoolPropWrapper {
 
     async calculateSuperheat({ temperature, pressure, refrigerant = this.defaultRefrigerant, tempUnit = this.defaultTempUnit, pressureUnit = this.defaultPressureUnit }) {
         try {
+            //convert R507 to R507a for coolprop
+            if(refrigerant == 'R507') {
+                refrigerant = 'R507A';
+            }
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
@@ -367,6 +383,10 @@ class CoolPropWrapper {
 
     async getProperties({ temperature, pressure, refrigerant = this.defaultRefrigerant, tempUnit = this.defaultTempUnit, pressureUnit = this.defaultPressureUnit }) {
         try {
+            //convert R507 to R507a for coolprop
+            if(refrigerant == 'R507') {
+                refrigerant = 'R507A';
+            }
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
