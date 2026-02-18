@@ -19,6 +19,7 @@ npm install coolprop-node
   - R407F
   - R448A
   - R449A
+  - R428A
 
 ## Dependencies
  No External Dependencies, as CoolProp.js and CoolProp.wasm are bundled with the package.
