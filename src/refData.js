@@ -1024,3 +1024,53 @@ module.exports.R428A = {
 }
 
 module.exports.R428a = module.exports.R428A;
+
+module.exports.R402A = {
+  saturation: [
+    // values in kelvin, pascal
+    // Source: Hudson Technologies PT chart (vapor pressure, single column — R-402A has near-zero glide)
+    // Converted from PT chart: psig to pascal via (psig + 14.696) * 6894.76
+    // Temperatures converted from °F to K via (°F + 459.67) * 5/9
+    { K: 233.15, liquid: 144762.38, vapor: 144762.38 },   // -40°F, 6.3 psig
+    { K: 235.93, liquid: 164067.71, vapor: 164067.71 },   // -35°F, 9.1 psig
+    { K: 238.71, liquid: 184751.99, vapor: 184751.99 },   // -30°F, 12.1 psig
+    { K: 241.48, liquid: 207504.70, vapor: 207504.70 },   // -25°F, 15.4 psig
+    { K: 244.26, liquid: 231636.36, vapor: 231636.36 },   // -20°F, 18.9 psig
+    { K: 247.04, liquid: 259215.40, vapor: 259215.40 },   // -15°F, 22.9 psig
+    { K: 249.82, liquid: 288173.39, vapor: 288173.39 },   // -10°F, 27.1 psig
+    { K: 252.59, liquid: 319889.28, vapor: 319889.28 },   // -5°F, 31.7 psig
+    { K: 255.37, liquid: 354363.08, vapor: 354363.08 },   // 0°F, 36.7 psig
+    { K: 258.15, liquid: 391594.79, vapor: 391594.79 },   // 5°F, 42.1 psig
+    { K: 260.93, liquid: 432273.87, vapor: 432273.87 },   // 10°F, 48.0 psig
+    { K: 263.71, liquid: 475021.38, vapor: 475021.38 },   // 15°F, 54.2 psig
+    { K: 266.48, liquid: 521216.28, vapor: 521216.28 },   // 20°F, 60.9 psig
+    { K: 269.26, liquid: 570858.55, vapor: 570858.55 },   // 25°F, 68.1 psig
+    { K: 272.04, liquid: 623948.20, vapor: 623948.20 },   // 30°F, 75.8 psig
+    { K: 274.82, liquid: 680485.23, vapor: 680485.23 },   // 35°F, 84.0 psig
+    { K: 277.59, liquid: 741159.12, vapor: 741159.12 },   // 40°F, 92.8 psig
+    { K: 280.37, liquid: 804590.91, vapor: 804590.91 },   // 45°F, 102.0 psig
+    { K: 283.15, liquid: 873538.51, vapor: 873538.51 },   // 50°F, 112.0 psig
+    { K: 285.93, liquid: 949380.87, vapor: 949380.87 },   // 55°F, 123.0 psig
+    { K: 288.71, liquid: 1025223.23, vapor: 1025223.23 }, // 60°F, 134.0 psig
+    { K: 291.48, liquid: 1107960.35, vapor: 1107960.35 }, // 65°F, 146.0 psig
+    { K: 294.26, liquid: 1190697.47, vapor: 1190697.47 }, // 70°F, 158.0 psig
+    { K: 297.04, liquid: 1280329.35, vapor: 1280329.35 }, // 75°F, 171.0 psig
+    { K: 299.82, liquid: 1376855.99, vapor: 1376855.99 }, // 80°F, 185.0 psig
+    { K: 302.59, liquid: 1480277.39, vapor: 1480277.39 }, // 85°F, 200.0 psig
+    { K: 305.37, liquid: 1583698.79, vapor: 1583698.79 }, // 90°F, 215.0 psig
+    { K: 308.15, liquid: 1700909.71, vapor: 1700909.71 }, // 95°F, 232.0 psig
+    { K: 310.93, liquid: 1818120.63, vapor: 1818120.63 }, // 100°F, 249.0 psig
+    { K: 313.71, liquid: 1942226.31, vapor: 1942226.31 }, // 105°F, 267.0 psig
+    { K: 316.48, liquid: 2073226.75, vapor: 2073226.75 }, // 110°F, 286.0 psig
+    { K: 319.26, liquid: 2204227.19, vapor: 2204227.19 }, // 115°F, 305.0 psig
+    { K: 322.04, liquid: 2349017.15, vapor: 2349017.15 }, // 120°F, 326.0 psig
+    { K: 324.82, liquid: 2493807.11, vapor: 2493807.11 }, // 125°F, 347.0 psig
+    { K: 327.59, liquid: 2652386.59, vapor: 2652386.59 }, // 130°F, 370.0 psig
+    { K: 330.37, liquid: 2810966.07, vapor: 2810966.07 }, // 135°F, 393.0 psig
+    { K: 333.15, liquid: 2983335.07, vapor: 2983335.07 }, // 140°F, 418.0 psig
+    { K: 335.93, liquid: 3155704.07, vapor: 3155704.07 }, // 145°F, 443.0 psig
+    { K: 338.71, liquid: 3341862.59, vapor: 3341862.59 }  // 150°F, 470.0 psig
+  ]
+}
+
+module.exports.R402a = module.exports.R402A;
