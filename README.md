@@ -15,16 +15,14 @@ npm install coolprop-node
 - Automatic initialization
 - Configurable defaults
 - Comprehensive error handling
-- Additional Refrigerant types not supported by CoolProp for superheat and subcooling:
-  - R407F
-  - R448A
-  - R449A
-  - R428A
+- Automatic support for CoolProp's predefined refrigerant blends (R407F, R448A, R449A, R428A, and many more) — the required `.MIX` naming is handled for you, so plain names like `'R449a'` just work
+- Additional refrigerant types not supported by CoolProp for superheat and subcooling (calculated from bundled PT chart data):
   - R402A
 
 ## Dependencies
  No External Dependencies, as CoolProp.js and CoolProp.wasm are bundled with the package.
 - [CoolProp](https://github.com/CoolProp/CoolProp) for the powerful thermodynamic library
+- Bundled CoolProp version: 8.0 (WASM build, reports `8.0.1dev`)
 
 
 ## Quick Start

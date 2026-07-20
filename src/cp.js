@@ -1,92 +1,50 @@
 // Load and configure the CoolProp module
 const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
+const { pathToFileURL } = require('url');
 
-// Mock XMLHttpRequest
-class XMLHttpRequest {
-    open(method, url) {
-        this.method = method;
-        this.url = url;
+const coolpropPath = path.join(__dirname, '..', 'coolprop', 'coolprop.js');
+
+// CoolProp 8.x ships as an ES module (import.meta / export default), which can't
+// be require()'d or run in a vm as a classic script. Convert the few ESM-only
+// constructs to CommonJS equivalents so it can run here (and under Jest, which
+// can't dynamically import ES modules without --experimental-vm-modules).
+let source = fs.readFileSync(coolpropPath, 'utf8');
+source = source
+    .replace('await import("module")', '__cpRequire("module")')
+    .replace(/import\.meta\.url/g, JSON.stringify(pathToFileURL(coolpropPath).href))
+    .replace('export default Module;', '');
+
+// Compile the transformed source; it declares the async factory `Module`.
+const createModule = new Function('__cpRequire', `${source}\nreturn Module;`)(require);
+
+let instance = null;
+let loading = null;
+
+function init() {
+    if (!loading) {
+        loading = createModule().then((mod) => {
+            instance = mod;
+            return mod;
+        });
     }
-
-    send() {
-        try {
-            // Convert the URL to a local file path
-            const localPath = path.join(__dirname, '..', 'coolprop', path.basename(this.url));
-            const data = fs.readFileSync(localPath);
-            
-            this.status = 200;
-            this.response = data;
-            this.responseType = 'arraybuffer';
-            
-            if (this.onload) {
-                this.onload();
-            }
-        } catch (error) {
-            if (this.onerror) {
-                this.onerror(error);
-            }
-        }
-    }
-}
-
-// Read the coolprop.js file
-const coolpropJs = fs.readFileSync(path.join(__dirname, '../coolprop/coolprop.js'), 'utf8');
-
-// Create a context for the module
-const context = {
-    window: {},
-    self: {},
-    Module: {
-        onRuntimeInitialized: function() {
-            context.Module.initialized = true;
-        }
-    },
-    importScripts: () => {},
-    console: console,
-    location: {
-        href: 'file://' + __dirname,
-        pathname: __dirname,
-    },
-    document: {
-        currentScript: { src: '' }
-    },
-    XMLHttpRequest: XMLHttpRequest
-};
-
-// Make self reference the context itself
-context.self = context;
-// Make window reference the context itself
-context.window = context;
-
-// Execute coolprop.js in our custom context
-vm.createContext(context);
-vm.runInContext(coolpropJs, context);
-
-// Wait for initialization
-function waitForInit(timeout = 5000) {
-    return new Promise((resolve, reject) => {
-        const start = Date.now();
-        const check = () => {
-            if (context.Module.initialized) {
-                resolve(context.Module);
-            } else if (Date.now() - start > timeout) {
-                reject(new Error('CoolProp initialization timed out'));
-            } else {
-                setTimeout(check, 100);
-            }
-        };
-        check();
-    });
+    return loading;
 }
 
 module.exports = {
-    init: () => waitForInit(),
+    init,
     PropsSI: (...args) => {
-        if (!context.Module.initialized) {
+        if (!instance) {
             throw new Error('CoolProp not initialized. Call init() first');
         }
-        return context.Module.PropsSI(...args);
+        return instance.PropsSI(...args);
+    },
+    // CoolProp signals failure by returning Infinity from PropsSI; the actual
+    // reason is stored in a global error string.
+    getLastError: () => {
+        if (!instance) {
+            return '';
+        }
+        return instance.get_global_param_string('errstring');
     }
 };

@@ -8,6 +8,26 @@ class CoolPropWrapper {
         this.defaultTempUnit = 'K';    // K, C, F
         this.defaultPressureUnit = 'Pa' // Pa, kPa, bar, psi
         this.customRef = false;
+        this._fluidNameCache = {};
+    }
+
+    // Some blends (e.g. R449A, R448A, R407F, R428A) are only available in
+    // CoolProp as predefined mixtures, which require the exact-case name plus
+    // a ".MIX" suffix. Probe with molar mass (needs no state inputs): Infinity
+    // means the plain name isn't loadable, so try the predefined mixture name.
+    _resolveFluidName(refrigerant) {
+        if (this._fluidNameCache[refrigerant]) {
+            return this._fluidNameCache[refrigerant];
+        }
+        let resolved = refrigerant;
+        if (!isFinite(coolprop.PropsSI('M', '', 0, '', 0, refrigerant))) {
+            const mixName = refrigerant.toUpperCase() + '.MIX';
+            if (isFinite(coolprop.PropsSI('M', '', 0, '', 0, mixName))) {
+                resolved = mixName;
+            }
+        }
+        this._fluidNameCache[refrigerant] = resolved;
+        return resolved;
     }
 
     // Temperature conversion helpers
@@ -259,7 +279,7 @@ class CoolPropWrapper {
             if(this.customRef){
                 tempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation);
             }else{
-                tempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || refrigerant);
+                tempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || this._resolveFluidName(refrigerant));
             }
                         
             return {
@@ -290,7 +310,7 @@ class CoolPropWrapper {
             if(this.customRef){
                 pressurePa = this._interpolateSaturationPressure(tempK, customRefs[refrigerant].saturation);
             }else{
-                pressurePa = coolprop.PropsSI('P', 'T', tempK, 'Q', 0, this.customRefString || refrigerant);
+                pressurePa = coolprop.PropsSI('P', 'T', tempK, 'Q', 0, this.customRefString || this._resolveFluidName(refrigerant));
             }
             
             return {
@@ -321,7 +341,7 @@ class CoolPropWrapper {
                 // Use liquid pressure for subcooling
                 satTempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation, 'liquid');
             }else{
-                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || refrigerant);
+                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 0, this.customRefString || this._resolveFluidName(refrigerant));
             }
             const subcooling = satTempK - tempK;
             const result = {
@@ -335,7 +355,7 @@ class CoolPropWrapper {
                 }
             };
             if(result.subcooling == Infinity || result.saturationTemperature == Infinity) {
-                return { type: 'error', message: 'Subcooling is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"'};
+                return { type: 'error', message: 'Subcooling is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"', coolpropError: coolprop.getLastError() };
             }
             return result;
         } catch (error) {
@@ -352,13 +372,13 @@ class CoolPropWrapper {
             await this._ensureInit({ refrigerant, tempUnit, pressureUnit });
             const tempK = this._convertTempToK(temperature, tempUnit);
             const pressurePa = this._convertPressureToPa(pressure, pressureUnit);
-            //console.log(`In calculateSuperheat, pressurePa: ${pressurePa}, pressure: ${pressure}, pressureUnit: ${pressureUnit}, refrigerant: ${this.customRefString || refrigerant}`);
+            //console.log(`In calculateSuperheat, pressurePa: ${pressurePa}, pressure: ${pressure}, pressureUnit: ${pressureUnit}, refrigerant: ${this.customRefString || this._resolveFluidName(refrigerant)}`);
             let satTempK;
             if(this.customRef){
                 // Use vapor pressure for superheat
                 satTempK = this._interpolateSaturationTemperature(pressurePa, customRefs[refrigerant].saturation, 'vapor');
             }else{
-                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 1, this.customRefString || refrigerant);
+                satTempK = coolprop.PropsSI('T', 'P', pressurePa, 'Q', 1, this.customRefString || this._resolveFluidName(refrigerant));
             }
             const superheat = tempK - satTempK;
             //console.log(`superheat: ${superheat}, calculatedSuperheat: ${this._convertDeltaTempFromK(superheat, tempUnit)}, calculatedSatTempK: ${this._convertTempFromK(satTempK, tempUnit)}, tempK: ${tempK}, tempUnit: ${tempUnit}, pressurePa: ${pressurePa}, pressureUnit: ${pressureUnit}`);
@@ -373,7 +393,7 @@ class CoolPropWrapper {
                 }
             };
             if(result.superheat == Infinity || result.saturationTemperature == Infinity) {
-                return { type: 'error', message: 'Superheat is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"'};
+                return { type: 'error', message: 'Superheat is infinity', note: 'If the pressures are in an expected range that this should work, please check your refrigerant type works in coolprop. "R507" for example is not supported, as it needs to be "R507a"', coolpropError: coolprop.getLastError() };
             }
             return result;
         } catch (error) {
@@ -397,13 +417,13 @@ class CoolPropWrapper {
             const props = {
                 temperature: this._convertTempFromK(tempK, tempUnit),
                 pressure: this._convertPressureFromPa(pressurePa, pressureUnit),
-                density: coolprop.PropsSI('D', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                enthalpy: coolprop.PropsSI('H', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                entropy: coolprop.PropsSI('S', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                quality: coolprop.PropsSI('Q', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                conductivity: coolprop.PropsSI('L', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                viscosity: coolprop.PropsSI('V', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant),
-                specificHeat: coolprop.PropsSI('C', 'T', tempK, 'P', pressurePa, this.customRefString || refrigerant)
+                density: coolprop.PropsSI('D', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                enthalpy: coolprop.PropsSI('H', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                entropy: coolprop.PropsSI('S', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                quality: coolprop.PropsSI('Q', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                conductivity: coolprop.PropsSI('L', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                viscosity: coolprop.PropsSI('V', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant)),
+                specificHeat: coolprop.PropsSI('C', 'T', tempK, 'P', pressurePa, this.customRefString || this._resolveFluidName(refrigerant))
             };
 
             return {
